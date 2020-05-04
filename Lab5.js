@@ -12,9 +12,7 @@ ctx.textBaseline = 'middle';
 ctx.textAlign = 'center';
 
 
-
-
-const A = [
+const Array = [
   [0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1],
   [1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1],
   [0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0],
@@ -25,6 +23,20 @@ const A = [
   [0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1],
   [1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0],
   [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+  [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+];
+
+const A = [
+  [0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1],
+  [1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1],
+  [0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0],
+  [1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0],
+  [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
+  [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+  [0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0],
+  [0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+  [1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0],
+  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
   [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
 ];
 const  W  = [
@@ -165,8 +177,8 @@ const drawLoops = (arr, obj, x0, y0) => {
 function singleAdditionalDots(x0, y0, x1, y1) {
   const alpha = Math.atan2(y1 - y0, x1 - x0);
   return {
-    dx: (r * (-5)) * Math.cos(Math.PI / 2 - alpha),
-    dy: (r * (-5)) * Math.sin(Math.PI / 2 - alpha)
+    dx: (r * (-4.6)) * Math.cos(Math.PI / 2 - alpha),
+    dy: (r * (-4.6)) * Math.sin(Math.PI / 2 - alpha)
   };
 }
 const single = obj => {
@@ -205,6 +217,7 @@ const single = obj => {
 const drawVertex = obj => {
   for (const key in obj) {
     ctx.beginPath();
+    ctx.lineWidth = 1;
     ctx.arc(obj[key].coords[0], obj[key].coords[1], r, 0, 2 * Math.PI, false);
     ctx.fillStyle = 'grey';
     ctx.fill();
@@ -327,7 +340,8 @@ const halt = () => {
 
       if (Math.abs(from.num - to.num) === 1 || Math.abs(from.num - to.num) === (Object.keys(graf).length - 1)) {
         ctx.beginPath();
-        ctx.strokeStyle = colors[colors.length % (compIndex + 1)];
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = colors[(compIndex >= colors.length) ? 'yellow' : compIndex];
         ctx.moveTo(fromX, fromY);
         ctx.lineTo(toX, toY);
         ctx.stroke();
@@ -338,9 +352,9 @@ const halt = () => {
         let newY = (fromY + toY) / 2;
         newX -= dx;
         newY += dy;
-        //ctx.lineWidth = 3;
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.strokeStyle = colors[colors.length % (compIndex + 1)];
+        ctx.strokeStyle = colors[(compIndex >= colors.length) ? 'yellow' : compIndex];
         ctx.moveTo(fromX, fromY);
         ctx.lineTo(newX, newY);
         ctx.lineTo(toX, toY);
@@ -352,8 +366,10 @@ const halt = () => {
 
 
 };
+drawLoops(loops, graf, 75, 100);
+single(graf);
+drawVertex(graf);
 
-ctx.lineWidth = 1;
 for (let i = 0; i < N; i++) { // draw weights
   for (let j = i; j < N; j++) {
     if (W[i][j]) {
@@ -371,13 +387,23 @@ for (let i = 0; i < N; i++) { // draw weights
       newX -= dx;
       newY += dy;
       console.log(newX, newY);
-      ctx.font = '15px Arial';
-      ctx.fillStyle = 'white';
-      ctx.strokeStyle = 'black';
-      ctx.textBaseline = 'middle';
-      ctx.textAlign = 'center';
-      ctx.fillText(wgh, newX, newY);
 
+      if (Math.abs(from.num - to.num) === 1 || Math.abs(from.num - to.num) === (Object.keys(graf).length - 1)) {
+        ctx.font = '15px Arial';
+        ctx.fillStyle = 'red';
+        ctx.strokeStyle = 'black';
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.fillText(wgh, (fromX + toX) / 2, (fromY + toY) / 2);
+      } else {
+
+        ctx.font = '15px Arial';
+        ctx.fillStyle = 'red';
+        ctx.strokeStyle = 'black';
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.fillText(wgh, newX, newY);
+      }
     }
   }
 }
@@ -390,24 +416,12 @@ for (let i = 0; i < N; i++) {
     treeMatrix[i][j] = 0;
   }
 }
+
 COMP[COMP.length - 1][0].forEach(pair => {
   treeMatrix[pair[0] - 1][pair[1] - 1] = A[pair[0] - 1][pair[1] - 1];
   treeMatrix[pair[1] - 1][pair[0] - 1] = A[pair[0] - 1][pair[1] - 1];
-  const from = graf[`vert${pair[0]}`];
-  const to = graf[`vert${pair[1]}`];
-  const wgh = W[pair[0] - 1][pair[1] - 1];
-  ctx.beginPath();
-  ctx.moveTo(from.x, from.y);
-  ctx.lineTo(to.x, to.y);
-  ctx.stroke();
-  ctx.font = '15px Arial';
-  ctx.fillStyle = 'white';
-  ctx.strokeStyle = 'black';
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'center';
-  ctx.fillText(wgh, (from.x + to.x) / 2, (from.y + to.y) / 2);
 });
-
+console.log(treeMatrix);
 for (const key in graf) { //draw vertics
   ctx.beginPath();
   drawCircle(ctx, graf[key].x, graf[key].y, r, 'grey', 'black');
@@ -432,91 +446,87 @@ for (let i = 1; i <= N; i++) { //draw text
 
 
 
+let treeObj = {};
+{
+  const n = A.length;
+  const x = 900;
+  const y = 325;
+  const r = 230;
+  const alpha = 2 * Math.PI / n;
+
+  const vertics = {};
+  let i = 1;
+
+  for (let angle = 0; i <= n; angle += alpha) {
+    const newX = x + r * Math.cos(angle);
+    const newY = y + r * Math.sin(angle);
+    vertics[`vert${i}`] = {};
+    vertics[`vert${i}`].coords = [];
+    vertics[`vert${i}`].coords.push(newX);
+    vertics[`vert${i}`].coords.push(newY);
+    vertics[`vert${i}`].num = graf[`vert${i}`].num;
+    i++;
+  }
+  treeObj = vertics;
+}
+makeCons(treeMatrix, treeObj);
+
+const drawNewOrdoubleCons = obj => {
+  for (const key in obj) {
+    for (let i = 0; i < obj[key].double.length; i++) {
+      const fromX = obj[key].coords[0];
+      const fromY = obj[key].coords[1];
+      //console.log(obj[`${obj[key].double[i]}`].number);
+      const toX = obj[`${obj[key].double[i]}`].coords[0];
+      const toY = obj[`${obj[key].double[i]}`].coords[1];
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      ctx.strokeStyle = 'black';
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
 
 
-// const treeMatrix = [];
-// for (let i = 0; i < N; i++) {
-//   treeMatrix[i] = [];
-//   for (let j = 0; j < N; j++) {
-//     treeMatrix[i][j] = 0;
-//   }
-// }
-// for (let i = 0; i < N; i++) {
-//   numMatrix[graf[`vert${i + 1}`].number - 1][graf[`vert${i + 1}`].num - 1] = 1;
-// }
 
 
-// let treeObj = {};
-// for (let i = 0; i < dfsFull.length - 2; i++) {
-//   const curr = graf[dfsFull[i]].num;
-//   const next = graf[dfsFull[i + 1]].num;
-//   if (treeObj[next] !== curr) {
-//     treeObj[curr] = next;
-//     treeMatrix[curr - 1][next - 1] = 1;
 
-//   }
-// }
-// const treeMatrixPrint = [];
-// for (let i = 0; i < N; i++) {
-//   treeMatrixPrint[i] = [];
-//   for (let j = 0; j < N; j++) {
-//     treeMatrixPrint[i][j] = 0;
-//   }
-// }
+      ctx.font = '15px Arial';
+      ctx.fillStyle = 'red';
+      ctx.strokeStyle = 'black';
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'center';
+      console.log(W);
+      // for (let i = 0; i < N; i++) { // draw weights
+      //   for (let j = i; j < N; j++) {
+      //     if (W[i][j]) {
+      //       const wgh = W[i][j];
+      //       ctx.fillText(wgh, (fromX + toX) / 2, (fromY + toY) / 2);
+      //     }
+      //   }
+      // }
+    }
+  }
+};
 
-// const treeObjPrint = {};
-// for (let i = 0; i < dfsFull.length - 2; i++) {
-//   const curr = graf[dfsFull[i]].number;
-//   const next = graf[dfsFull[i + 1]].number;
-//   if (treeObjPrint[next] !== curr) {
-//     treeObjPrint[curr] = next;
-//     treeMatrixPrint[curr - 1][next - 1] = 1;
+drawNewOrdoubleCons(treeObj);
+drawVertex(treeObj);
 
-//   }
-// }
-
-// {
-//   const n = A.length;
-//   const x = 900;
-//   const y = 325;
-//   const r = 230;
-//   const alpha = 2 * Math.PI / n;
-
-//   const vertics = {};
-//   let i = 1;
-
-//   for (let angle = 0; i <= n; angle += alpha) {
-//     const newX = x + r * Math.cos(angle);
-//     const newY = y + r * Math.sin(angle);
-//     vertics[`vert${i}`] = {};
-//     vertics[`vert${i}`].coords = [];
-//     vertics[`vert${i}`].coords.push(newX);
-//     vertics[`vert${i}`].coords.push(newY);
-//     vertics[`vert${i}`].num = graf[`vert${i}`].number;
-//     i++;
-//   }
-//   treeObj = vertics;
-// }
-// makeCons(treeMatrix, treeObj);
-
-// const drawNewOrdoubleCons = obj => {
-//   for (const key in obj) {
-//     for (let i = 0; i < obj[key].double.length; i++) {
-//       const fromX = obj[key].coords[0];
-//       const fromY = obj[key].coords[1];
-//       //console.log(obj[`${obj[key].double[i]}`].number);
-//       const toX = obj[`${obj[key].double[i]}`].coords[0];
-//       const toY = obj[`${obj[key].double[i]}`].coords[1];
-//       ctx.beginPath();
-//       ctx.moveTo(fromX, fromY);
-//       ctx.strokeStyle = 'black';
-//       ctx.lineTo(toX, toY);
-//       ctx.stroke();
-//       const coordinates = readyCons(fromX, fromY, toX, toY, r);
-//       drawArrowhead(fromX, fromY, coordinates.x, coordinates.y, arrr);
-//     }
-//   }
-// };
+for (let i = 0; i < N; i++) { // draw weights
+  for (let j = i; j < N; j++) {
+    if (W[i][j]) {
+      if (treeMatrix[i][j]) {
+        const wgh = W[i][j];
+        const from = treeObj[`vert${i + 1}`];
+        const to = treeObj[`vert${j + 1}`];
+        ctx.font = '15px Arial';
+        ctx.fillStyle = 'red';
+        ctx.strokeStyle = 'black';
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.fillText(wgh, (from.coords[0] + to.coords[0]) / 2, (from.coords[1] + to.coords[1]) / 2);
+      }
+    }
+  }
+}
 
 
 // ctx.font = '22px Times new Roman';
@@ -535,15 +545,6 @@ for (let i = 1; i <= N; i++) { //draw text
 
 
 
-
-
-
-//drawNewOrdoubleCons(treeObj);
-
-//drawVertex(treeObj);
-drawLoops(loops, graf, 75, 100);
-single(graf);
-drawVertex(graf);
 
 
 
