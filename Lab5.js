@@ -12,7 +12,7 @@ ctx.textBaseline = 'middle';
 ctx.textAlign = 'center';
 
 
-const Array = [
+const G = [
   [0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1],
   [1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1],
   [0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0],
@@ -20,9 +20,9 @@ const Array = [
   [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
   [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
   [0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0],
-  [0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1],
+  [0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
   [1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0],
-  [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
   [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
 ];
 
@@ -53,7 +53,7 @@ const  W  = [
   [95, 25, 0,  0,  0,  0,  0,  22, 0,  0,  0 ],
 ];
 
-const r = 15;
+const r = 12;
 const rloops = 3 * r / 4;
 const fullCopy = x => JSON.parse(JSON.stringify(x));
 
@@ -127,7 +127,7 @@ const calcVertics = (n, P, x0, y0, obj) => {
   }
 };
 
-calcVertics(11, 1600, 50, 520, graf);
+calcVertics(11, 2000, 50, 600, graf);
 
 const makeCons = (matrix, obj) => {
   for (const key in obj) {
@@ -177,8 +177,8 @@ const drawLoops = (arr, obj, x0, y0) => {
 function singleAdditionalDots(x0, y0, x1, y1) {
   const alpha = Math.atan2(y1 - y0, x1 - x0);
   return {
-    dx: (r * (-4.6)) * Math.cos(Math.PI / 2 - alpha),
-    dy: (r * (-4.6)) * Math.sin(Math.PI / 2 - alpha)
+    dx: -(r * 5.8) * Math.cos(Math.PI / 2 - alpha),
+    dy: (r * 3.8) * Math.sin(Math.PI / 2 - alpha)
   };
 }
 const single = obj => {
@@ -263,9 +263,9 @@ weightsArr.sort((a, b) => a.weight - b.weight);
 
 
 
-const COMP = [];
+const builder = [];
 let components = [];
-const compForPlotting = [];
+const compBuilder = [];
 
 const returnConcat = (arr1, arr2) => {
   const copied1 = fullCopy(arr1);
@@ -284,11 +284,11 @@ const Krskl = (weights, comp, curr = 0) => {
         if (compCopy[j].includes(v2)) {
           flag = false;
           if (i === j) continue;
-          compForPlotting[i] = [...compForPlotting[i], ...compForPlotting[j], [v1, v2]];
+          compBuilder[i] = [...compBuilder[i], ...compBuilder[j], [v1, v2]];
           compCopy[i] = returnConcat(compCopy[i], compCopy[j]);
-          compForPlotting.splice(j, 1);
+          compBuilder.splice(j, 1);
           compCopy.splice(j, 1);
-          COMP.push(fullCopy(compForPlotting));
+          builder.push(fullCopy(compBuilder));
         }
       }
     }
@@ -297,23 +297,23 @@ const Krskl = (weights, comp, curr = 0) => {
     for (let i = 0; i < compCopy.length; i++) {
       if (compCopy[i].includes(v1)) {
         compCopy[i].push(v2);
-        compForPlotting[i] = [...compForPlotting[i], [v1, v2]];
+        compBuilder[i] = [...compBuilder[i], [v1, v2]];
         flag = false;
-        COMP.push(fullCopy(compForPlotting));
+        builder.push(fullCopy(compBuilder));
         break;
       } else if (compCopy[i].includes(v2)) {
         compCopy[i].push(v1);
-        compForPlotting[i] = [...compForPlotting[i], [v1, v2]];
+        compBuilder[i] = [...compBuilder[i], [v1, v2]];
         flag = false;
-        COMP.push(fullCopy(compForPlotting));
+        builder.push(fullCopy(compBuilder));
         break;
       }
     }
   }
   if (flag) { //if new
     compCopy.push([v1, v2]);
-    compForPlotting.push([[v1, v2]]);
-    COMP.push(fullCopy(compForPlotting));
+    compBuilder.push([[v1, v2]]);
+    builder.push(fullCopy(compBuilder));
   }
   components = fullCopy(compCopy);
   if (curr === weights.length - 1) return;
@@ -322,7 +322,53 @@ const Krskl = (weights, comp, curr = 0) => {
 
 Krskl(weightsArr, []);
 
-const iter = COMP[Symbol.iterator]();
+
+
+const drawWeigths = (matrix, obj) => {
+  for (let i = 0; i < A.length; i++) {
+    for (let j = i; j < A.length; j++) {
+      if (matrix[i][j]) {
+        const w = matrix[i][j];
+        const fromX = obj[`vert${i + 1}`].coords[0];
+        const fromY = obj[`vert${i + 1}`].coords[1];
+        const toX = obj[`vert${j + 1}`].coords[0];
+        const toY = obj[`vert${j + 1}`].coords[1];
+        const { dx, dy } = singleAdditionalDots(fromX, fromY, toX, toY);
+        let newX = (fromX + toX) / 2;
+        let newY = (fromY + toY) / 2;
+        newX -= dx;
+        newY += dy;
+
+        if (Math.abs(obj[`vert${i + 1}`].num - obj[`vert${j + 1}`].num) === 1 || Math.abs(obj[`vert${i + 1}`].num - obj[`vert${j + 1}`].num) === (Object.keys(obj).length - 1)) {
+          ctx.beginPath();
+          ctx.strokeStyle = 'black';
+          ctx.fillStyle = 'white';
+          ctx.arc((fromX + toX) / 2, (fromY + toY) / 2, 8, 0, 2 * Math.PI, false);
+          ctx.fill();
+          ctx.font = '12px Arial';
+          ctx.fillStyle = 'red';
+          ctx.textBaseline = 'middle';
+          ctx.textAlign = 'center';
+          ctx.fillText(w, (fromX + toX) / 2, (fromY + toY) / 2);
+        } else {
+          ctx.beginPath();
+          ctx.strokeStyle = 'black';
+          ctx.fillStyle = 'white';
+          ctx.arc(newX, newY, 8, 0, 2 * Math.PI, false);
+          ctx.fill();
+          ctx.font = '12px Arial';
+          ctx.fillStyle = 'red';
+          ctx.textBaseline = 'middle';
+          ctx.textAlign = 'center';
+          ctx.fillText(w, newX, newY);
+        }
+      }
+    }
+  }
+};
+
+
+const iter = builder[Symbol.iterator]();
 
 const colors = ['DeepPink', 'Cyan', 'Blue'];
 
@@ -346,6 +392,7 @@ const halt = () => {
         ctx.lineTo(toX, toY);
         ctx.stroke();
         drawVertex(graf);
+        drawWeigths(W, graf);
       } else {
         const { dx, dy } = singleAdditionalDots(fromX, fromY, toX, toY);
         let newX = (fromX + toX) / 2;
@@ -360,54 +407,20 @@ const halt = () => {
         ctx.lineTo(toX, toY);
         ctx.stroke();
         drawVertex(graf);
+        drawWeigths(W, graf);
       }
     });
   });
 
 
 };
+
+
+
 drawLoops(loops, graf, 75, 100);
 single(graf);
 drawVertex(graf);
-
-for (let i = 0; i < N; i++) { // draw weights
-  for (let j = i; j < N; j++) {
-    if (W[i][j]) {
-      const wgh = W[i][j];
-      console.log(wgh);
-      const from = graf[`vert${i + 1}`];
-      const to = graf[`vert${j + 1}`];
-      const fromX = from.coords[0];
-      const fromY = from.coords[1];
-      const toX =  to.coords[0];
-      const toY = to.coords[1];
-      const { dx, dy } = singleAdditionalDots(fromX, fromY, toX, toY);
-      let newX = (fromX + toX) / 2;
-      let newY = (fromY + toY) / 2;
-      newX -= dx;
-      newY += dy;
-      console.log(newX, newY);
-
-      if (Math.abs(from.num - to.num) === 1 || Math.abs(from.num - to.num) === (Object.keys(graf).length - 1)) {
-        ctx.font = '15px Arial';
-        ctx.fillStyle = 'red';
-        ctx.strokeStyle = 'black';
-        ctx.textBaseline = 'middle';
-        ctx.textAlign = 'center';
-        ctx.fillText(wgh, (fromX + toX) / 2, (fromY + toY) / 2);
-      } else {
-
-        ctx.font = '15px Arial';
-        ctx.fillStyle = 'red';
-        ctx.strokeStyle = 'black';
-        ctx.textBaseline = 'middle';
-        ctx.textAlign = 'center';
-        ctx.fillText(wgh, newX, newY);
-      }
-    }
-  }
-}
-
+drawWeigths(W, graf);
 
 const treeMatrix = [];
 for (let i = 0; i < N; i++) {
@@ -417,7 +430,7 @@ for (let i = 0; i < N; i++) {
   }
 }
 
-COMP[COMP.length - 1][0].forEach(pair => {
+builder[builder.length - 1][0].forEach(pair => {
   treeMatrix[pair[0] - 1][pair[1] - 1] = A[pair[0] - 1][pair[1] - 1];
   treeMatrix[pair[1] - 1][pair[0] - 1] = A[pair[0] - 1][pair[1] - 1];
 });
@@ -435,15 +448,6 @@ for (let i = 1; i <= N; i++) { //draw text
   ctx.strokeText(i, graf[`vert${i}`].x, graf[`vert${i}`].y);
   ctx.fillText(i, graf[`vert${i}`].x, graf[`vert${i}`].y);
 }
-
-
-
-
-
-
-
-
-
 
 
 let treeObj = {};
@@ -495,14 +499,6 @@ const drawNewOrdoubleCons = obj => {
       ctx.textBaseline = 'middle';
       ctx.textAlign = 'center';
       console.log(W);
-      // for (let i = 0; i < N; i++) { // draw weights
-      //   for (let j = i; j < N; j++) {
-      //     if (W[i][j]) {
-      //       const wgh = W[i][j];
-      //       ctx.fillText(wgh, (fromX + toX) / 2, (fromY + toY) / 2);
-      //     }
-      //   }
-      // }
     }
   }
 };
@@ -528,22 +524,27 @@ for (let i = 0; i < N; i++) { // draw weights
   }
 }
 
+ctx.fillStyle = 'black';
+ctx.font = '22px Times new Roman';
+ctx.fillText('Adjacency matrix', 250, 700);
+for (let i = 0; i < G.length; i++) {
+  ctx.font = '24px Times new Roman';
+  ctx.fillText(G[i], 250, 700 + (i + 1) * 25);
+}
 
-// ctx.font = '22px Times new Roman';
-// ctx.fillText('Renumbering matrix', 250, 600);
-// for (let i = 0; i < numMatrix.length; i++) {
-//   ctx.font = '24px Times new Roman';
-//   ctx.fillText(numMatrix[i], 250, 600 + (i + 1) * 25);
-// }
+ctx.font = '22px Times new Roman';
+ctx.fillText('Adjacency matrix of non-or', 600, 700);
+for (let i = 0; i < A.length; i++) {
+  ctx.font = '24px Times new Roman';
+  ctx.fillText(A[i], 600, 700 + (i + 1) * 25);
+}
 
-// ctx.font = '22px Times new Roman';
-// ctx.fillText('Adjacency matrix of tree', 750, 600);
-// for (let i = 0; i < treeMatrixPrint.length; i++) {
-//   ctx.font = '24px Times new Roman';
-//   ctx.fillText(treeMatrixPrint[i], 750, 600 + (i + 1) * 25);
-// }
-
-
+ctx.font = '22px Times new Roman';
+ctx.fillText('Adjacency matrix of tree', 900, 700);
+for (let i = 0; i < treeMatrix.length; i++) {
+  ctx.font = '24px Times new Roman';
+  ctx.fillText(treeMatrix[i], 900, 700 + (i + 1) * 25);
+}
 
 
 
